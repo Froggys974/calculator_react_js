@@ -3,9 +3,10 @@ import "./calculator.css";
 import ButtonCalc from "../buttons/button";
 
 export default function Calculator() {
-  const [calcVal, setCalcVal, getCalcVal] = useState('');
+  const [calcVal, setCalcVal] = useState(''); 
   const [prevCalcVal, setPrevCalcVal] = useState('');
   const [operators, setOperators] = useState(null);
+  const [calculEnd, setCalculEnd] = useState(false);
   const calcBtns = [
     "C",
     "%",
@@ -28,29 +29,38 @@ export default function Calculator() {
   ];
   
   const handleClick = (btn) => {
+    let updatedCalcVal = calcVal;
+
     if (!isNaN(btn) || btn === ".") {
-      calcVal = getDisplay() + btn; // Ajoutez le bouton à la valeur actuelle
+        if (calculEnd) {
+            updatedCalcVal=btn;
+            setCalculEnd(false);
+        }else{
+            updatedCalcVal += btn;
+
+        }
     }
     if (btn === "C") {
       emptyDisplay();
+      return; // Return here to prevent further execution
     }
     if (btn === "=") {
       calculateResult();
+      return; // Return here to prevent further execution
     }
     if (btn === "%") {
-      calcVal = calcVal / 100 + "";
+      updatedCalcVal = parseFloat(updatedCalcVal) / 100 + "";
     }
     if (["/", "+", "-", "*"].includes(btn)) {
-      operators = btn;
-      prevCalcVal = calcVal;
-      calcVal = "";
+      setOperators(btn);
+      setPrevCalcVal(updatedCalcVal);
+      updatedCalcVal = "";
     }
-    setDisplay(calcVal);
+    setCalcVal(updatedCalcVal);
   };
 
-  // Méthode pour obtenir la valeur affichée
-   getCalcVal = () => {
-    return display;
+  const getCalcVal = () => {
+    return calcVal;
   };
 
   const isOperator = (btn) => {
@@ -59,16 +69,20 @@ export default function Calculator() {
 
   const calculateResult = () => {
     try {
-      calcVal = eval(prevCalcVal + operators + calcVal);
-      setDisplay(calcVal);
-      this.prevCalcVal = "";
-      this.operators = null;
+      let result = eval(prevCalcVal + operators + calcVal).toString();
+      setCalcVal(result + "");
+      setPrevCalcVal("");
+      setOperators(null);
+      setCalculEnd(true);
     } catch (error) {
-      setDisplay(error);
+      setCalcVal("Error");
     }
   };
+
   const emptyDisplay = () => {
-    setDisplay("");
+    setCalcVal("");
+    setPrevCalcVal("");
+    setOperators(null);
   };
 
   return (
